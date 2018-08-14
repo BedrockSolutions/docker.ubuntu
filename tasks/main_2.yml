@@ -1,7 +1,4 @@
 ---
-# tasks file for docker.ubuntu
-- name: "Include proper python vars file"
-  include_vars: "{{ python_vars_file }}"
 
 - name: Fail if not a supported release of Ubuntu
   fail:
@@ -41,7 +38,8 @@
   with_items:
     - linux-image-extra-{{ ansible_kernel }}
     - linux-image-extra-virtual
-  when: docker_aufs_enabled and ansible_distribution_version is version_compare('14.04', '==')
+  when: docker_aufs_enabled and ansible_distribution_version is version_compare('14.04', '==') and ansible_kernel is version_compare('4.4', '<')
+
   register: linux_image_extra_install
   ignore_errors: yes
 
@@ -198,7 +196,7 @@
       module in Ansible < 2.3
   when: pip_install_docker_compose and _pip_version_docker_compose != pip_version_docker_compose
 
-# See vars/main_2.yml for more information on this.
+# See vars/main.yml for more information on this.
 - name: Clean previous docker-py package if installing docker.
   pip:
     name: docker-py
@@ -206,7 +204,7 @@
     executable: "{{ _pip_executable }}"
   when: (_pip_install_docker or pip_install_docker_compose) and _pip_docker_package_name == 'docker'
 
-# See vars/main_2.yml for more information on this.
+# See vars/main.yml for more information on this.
 - name: Clean previous docker package if installing docker-py.
   pip:
     name: docker
@@ -250,19 +248,17 @@
     line: 'PRUNEPATHS="/var/lib/docker \2"'
   when: updatedb_conf_exists.stat.exists
 
-- block:
-    - name: Check if /etc/default/ufw exists
-      stat:
-        path: /etc/default/ufw
-      register: ufw_default_exists
+- name: Check if /etc/default/ufw exists
+  stat:
+    path: /etc/default/ufw
+  register: ufw_default_exists
 
-    - name: Change ufw default forward policy from drop to accept
-      lineinfile:
-        dest: /etc/default/ufw
-        regexp: "^DEFAULT_FORWARD_POLICY="
-        line: "DEFAULT_FORWARD_POLICY=\"ACCEPT\""
-      when: ufw_default_exists.stat.exists
-  when: ufw_set_forward_policy
+- name: Change ufw default forward policy from drop to accept
+  lineinfile:
+    dest: /etc/default/ufw
+    regexp: "^DEFAULT_FORWARD_POLICY="
+    line: "DEFAULT_FORWARD_POLICY=\"ACCEPT\""
+  when: ufw_default_exists.stat.exists
 
 - name: Set docker HTTP_PROXY if docker_http_proxy defined
   lineinfile:
