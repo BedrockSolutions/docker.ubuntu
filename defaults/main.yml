@@ -105,3 +105,7 @@ ufw_set_forward_policy: true
 # Set to 'no' if docker daemon shall not be started.
 # (e.g. in case of a machine which only controls other docker hosts via docker-machine)
 start_docker_daemon: true
+
+# Set to 'no' or 'false' to turn this role into a no-op. Useful when using
+# the Ansible dependency mechanism.
+docker_ubuntu_enabled: true
