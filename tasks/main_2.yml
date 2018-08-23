@@ -1,5 +1,8 @@
 ---
 
+- name: "Include proper python vars file"
+  include_vars: "{{ python_vars_file }}"
+
 - name: Fail if not a supported release of Ubuntu
   fail:
     msg: "{{ ansible_distribution_version }} is not an acceptable version of Ubuntu for this role"
